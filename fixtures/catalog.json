@@ -1,0 +1,22 @@
+{
+  "entities": {
+    "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)": {
+      "name": "analytics.customers",
+      "deprecated": false,
+      "schema": ["customer_id", "email", "country", "created_at"]
+    }
+  },
+  "lineage": {
+    "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)": [
+      {
+        "urn": "urn:li:dataset:(urn:li:dataPlatform:looker,growth.customer_retention,PROD)",
+        "direction": "downstream"
+      },
+      {
+        "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,finance.customer_ltv,PROD)",
+        "direction": "downstream"
+      }
+    ]
+  }
+}
+
