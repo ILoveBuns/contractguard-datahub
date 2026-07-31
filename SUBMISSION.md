@@ -51,7 +51,7 @@ DataHub Cloud-backed public demo.
 - Reproducible test command: `python -m pytest -q` (currently 3 passing tests)
 - Sample breaking change: `examples/breaking_change.sql`
 - Sample machine-readable decision: `artifacts/review.json`
-- Narrated demo master: `demo-output/contractguard-datahub-demo-1080p.mp4`
+- Public narrated demo release: <https://github.com/ILoveBuns/contractguard-datahub/releases/tag/demo-v1>
 - Required remaining publication step: upload the demo master publicly to
   YouTube or Vimeo and paste that URL into Devpost.
 - Optional $50 feedback award: opt in to and complete the feedback section on
