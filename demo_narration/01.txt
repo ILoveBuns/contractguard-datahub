@@ -1,0 +1,1 @@
+Data teams review SQL diffs without seeing the real downstream blast radius. ContractGuard brings DataHub metadata into the review before a breaking change reaches production.

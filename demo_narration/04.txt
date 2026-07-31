@@ -1,0 +1,1 @@
+ContractGuard returns block with a risk score of seventy. Dropping email would affect two downstream consumers: a retention dashboard and a finance lifetime value model.

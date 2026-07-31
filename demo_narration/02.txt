@@ -1,0 +1,1 @@
+This example drops the email column and still uses select star. A normal linter sees syntax. ContractGuard resolves the governed dataset through DataHub and asks what actually depends on it.

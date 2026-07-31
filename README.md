@@ -39,6 +39,18 @@ and owner notification.
 python -m unittest discover -s tests -v
 ```
 
+## Rebuild the narrated demo video
+
+The submission video is generated from reproducible evidence rather than a
+private catalog recording. With ImageMagick, Edge TTS, and FFmpeg available:
+
+```bash
+./make_demo_video.sh
+```
+
+The script creates a sub-three-minute 1080p H.264/AAC video in
+`demo-output/` and prints its media-stream verification report.
+
 ## Official DataHub MCP server
 
 Run the official server with mutation tools enabled:

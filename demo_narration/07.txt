@@ -1,0 +1,1 @@
+The dependency-free policy engine is covered by reproducible tests, while the fixture adapter lets judges verify the exact result without private catalog access. ContractGuard makes metadata actionable at review time.

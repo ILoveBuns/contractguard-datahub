@@ -1,0 +1,1 @@
+The review is deterministic and easy to run. One command analyzes the migration, requests a writeback, and produces a portable JSON artifact for continuous integration.

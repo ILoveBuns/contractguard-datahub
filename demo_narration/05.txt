@@ -1,0 +1,1 @@
+Every finding carries catalog evidence. ContractGuard also flags the unstable select star projection and proposes a compatibility-first migration with explicit governed fields and owner notification.

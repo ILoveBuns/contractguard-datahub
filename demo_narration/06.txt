@@ -1,0 +1,1 @@
+DataHub is in the critical path. The live adapter uses search, entity details, lineage, and dataset queries, then saves the evidence-backed decision back to DataHub as a durable document.
