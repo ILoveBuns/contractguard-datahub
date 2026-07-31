@@ -45,3 +45,19 @@ to the organization's real data graph.
 GitHub Check annotations, dbt manifest mapping, owner notifications, and a
 DataHub Cloud-backed public demo.
 
+## Final submission evidence checklist
+
+- Public Apache-2.0 repository: <https://github.com/ILoveBuns/contractguard-datahub>
+- Reproducible test command: `python -m pytest -q` (currently 3 passing tests)
+- Sample breaking change: `examples/breaking_change.sql`
+- Sample machine-readable decision: `artifacts/review.json`
+- Narrated demo master: `demo-output/contractguard-datahub-demo-1080p.mp4`
+- Required remaining publication step: upload the demo master publicly to
+  YouTube or Vimeo and paste that URL into Devpost.
+- Optional $50 feedback award: opt in to and complete the feedback section on
+  the Devpost form.
+
+The final form should select **Metadata-Aware Code Generation & Development**.
+The strongest judging evidence is that ContractGuard uses schema and lineage
+context before producing migration code, then writes its evidence-backed
+decision back to DataHub for future humans and agents.
