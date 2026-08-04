@@ -1,0 +1,11 @@
+{
+  "verdict": "PASS",
+  "score": 0,
+  "assets": [
+    "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)"
+  ],
+  "findings": [],
+  "safer_sql": "SELECT customer_id, country, created_at\nFROM analytics.customers;\n",
+  "decision_markdown": "# ContractGuard decision\n\n- Verdict: **PASS**\n- Risk score: **0/100**\n- Resolved DataHub assets: 1\n- DataHub usage queries inspected: 2\n\n## Findings\n\n## Safer migration\n```sql\nSELECT customer_id, country, created_at\nFROM analytics.customers;\n\n```",
+  "writeback_id": null
+}

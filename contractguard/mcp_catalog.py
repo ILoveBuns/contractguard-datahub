@@ -141,6 +141,15 @@ class DataHubMCPCatalog:
             for x in _find_records(result)
         ]
 
+    def queries(self, urn: str, column: str | None = None) -> list[dict[str, Any]]:
+        arguments: dict[str, Any] = {"urn": urn, "count": 10}
+        if column is not None:
+            arguments["column"] = column
+        result = self.client.call("get_dataset_queries", arguments)
+        if isinstance(result, dict) and isinstance(result.get("queries"), list):
+            return [item for item in result["queries"] if isinstance(item, dict)]
+        return _find_records(result)
+
     def save_decision(self, title: str, body: str, urns: list[str]) -> str:
         result = self.client.call(
             "save_document",

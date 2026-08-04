@@ -17,6 +17,19 @@
         "direction": "downstream"
       }
     ]
+  },
+  "queries": {
+    "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)": [
+      {
+        "urn": "urn:li:query:growth-retention-by-email",
+        "source": "SYSTEM",
+        "statement": "SELECT email, COUNT(*) FROM analytics.customers GROUP BY email"
+      },
+      {
+        "urn": "urn:li:query:finance-customer-ltv",
+        "source": "SYSTEM",
+        "statement": "SELECT customer_id, email FROM analytics.customers"
+      }
+    ]
   }
 }
-

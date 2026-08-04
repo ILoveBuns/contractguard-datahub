@@ -37,8 +37,10 @@ to the organization's real data graph.
 ## Accomplishments
 
 - DataHub is in the critical path, not a decorative lookup.
+- Column-specific production query evidence strengthens the lineage blast radius.
 - The agent closes the loop by writing a durable decision back to DataHub.
-- Reproducible tests cover breaking lineage and writeback behavior.
+- Ten reproducible tests cover risk decisions, query evidence, adapter mapping,
+  and writeback behavior.
 
 ## What's next
 
@@ -48,12 +50,16 @@ DataHub Cloud-backed public demo.
 ## Final submission evidence checklist
 
 - Public Apache-2.0 repository: <https://github.com/ILoveBuns/contractguard-datahub>
-- Reproducible test command: `python -m pytest -q` (currently 3 passing tests)
+- Reproducible test command: `python3 -m unittest discover -s tests -v`
+  (currently 10 passing tests)
 - Sample breaking change: `examples/breaking_change.sql`
 - Sample machine-readable decision: `artifacts/review.json`
+- Safe-change counterexample: `examples/safe_change.sql` and
+  `artifacts/safe-review.json`
 - Public narrated demo release: <https://github.com/ILoveBuns/contractguard-datahub/releases/tag/demo-v1>
-- Required remaining publication step: upload the demo master publicly to
-  YouTube or Vimeo and paste that URL into Devpost.
+- Public YouTube demo: <https://youtu.be/tHVYGCJKByo>
+- Devpost submission: complete (5/5 sections); continue improving the public
+  repository evidence before the deadline.
 - Optional $50 feedback award: opt in to and complete the feedback section on
   the Devpost form.
 
