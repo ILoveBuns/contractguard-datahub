@@ -1,0 +1,38 @@
+{
+  "verdict": "BLOCK",
+  "score": 100,
+  "assets": [
+    "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)"
+  ],
+  "findings": [
+    {
+      "severity": "critical",
+      "code": "BREAKING_LINEAGE",
+      "message": "Dropping email can break 2 downstream asset(s).",
+      "evidence": [
+        "urn:li:dataset:(urn:li:dataPlatform:looker,growth.customer_retention,PROD)",
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,finance.customer_ltv,PROD)"
+      ]
+    },
+    {
+      "severity": "high",
+      "code": "ACTIVE_QUERY_USAGE",
+      "message": "DataHub records 2 active query pattern(s) using the dropped column(s).",
+      "evidence": [
+        "urn:li:query:finance-customer-ltv",
+        "urn:li:query:growth-retention-by-email"
+      ]
+    },
+    {
+      "severity": "medium",
+      "code": "UNSTABLE_PROJECTION",
+      "message": "SELECT * couples the change to future schema drift; enumerate governed fields.",
+      "evidence": [
+        "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)"
+      ]
+    }
+  ],
+  "safer_sql": "-- ContractGuard: stage a compatibility view and notify downstream owners first.\n-- ALTER TABLE analytics.customers DROP COLUMN email;\nSELECT /* enumerate approved fields */ FROM analytics.customers;\n\n",
+  "decision_markdown": "# ContractGuard decision\n\n- Verdict: **BLOCK**\n- Risk score: **100/100**\n- Resolved DataHub assets: 1\n- DataHub usage queries inspected: 2\n\n## Findings\n- **CRITICAL \u00b7 BREAKING_LINEAGE** \u2014 Dropping email can break 2 downstream asset(s).\n- **HIGH \u00b7 ACTIVE_QUERY_USAGE** \u2014 DataHub records 2 active query pattern(s) using the dropped column(s).\n- **MEDIUM \u00b7 UNSTABLE_PROJECTION** \u2014 SELECT * couples the change to future schema drift; enumerate governed fields.\n\n## Safer migration\n```sql\n-- ContractGuard: stage a compatibility view and notify downstream owners first.\n-- ALTER TABLE analytics.customers DROP COLUMN email;\nSELECT /* enumerate approved fields */ FROM analytics.customers;\n\n\n```",
+  "writeback_id": "fixture-document-1"
+}

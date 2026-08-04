@@ -25,19 +25,33 @@ production adapter and talks to the official server over MCP stdio JSON-RPC.
 ## Run the deterministic demo
 
 ```bash
-python -m contractguard.cli examples/breaking_change.sql \
+python3 -m contractguard.cli examples/breaking_change.sql \
   --write-back --output artifacts/review.json
 ```
 
 Expected verdict: `BLOCK`, because the dropped `email` column has two
-downstream consumers. The suggested migration calls for a compatibility view
-and owner notification.
+downstream consumers and two recorded production query patterns. The suggested
+migration calls for a compatibility view and owner notification.
+
+Compare that result with a safe, explicitly projected change:
+
+```bash
+python3 -m contractguard.cli examples/safe_change.sql \
+  --output artifacts/safe-review.json
+```
+
+Expected verdict: `PASS`. Both machine-readable outputs are committed so a
+judge can inspect the evidence without installing anything.
 
 ## Test
 
 ```bash
-python -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v
 ```
+
+The 10-test suite covers breaking lineage, active query usage, safe changes,
+unresolved assets, unstable projections, deduplication, writeback, fixture
+semantics, and the exact five-tool MCP flow.
 
 ## Rebuild the narrated demo video
 
@@ -71,6 +85,10 @@ from contractguard.mcp_catalog import DataHubMCPCatalog, MCPClient
 with MCPClient() as client:
     review = review_sql(sql, DataHubMCPCatalog(client), write_back=True)
 ```
+
+The live flow invokes `search`, `get_entities`, `get_lineage`,
+`get_dataset_queries`, and `save_document`. Mutation support is required only
+for the final writeback; all discovery and risk analysis remains read-only.
 
 ## Hackathon track
 

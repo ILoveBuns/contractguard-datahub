@@ -9,6 +9,7 @@ class Catalog(Protocol):
     def search(self, query: str) -> list[dict[str, Any]]: ...
     def entity(self, urn: str) -> dict[str, Any]: ...
     def lineage(self, urn: str) -> list[dict[str, Any]]: ...
+    def queries(self, urn: str, column: str | None = None) -> list[dict[str, Any]]: ...
     def save_decision(self, title: str, body: str, urns: list[str]) -> str: ...
 
 
@@ -52,6 +53,7 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
     findings: list[Finding] = []
     urns: list[str] = []
     downstream: list[str] = []
+    usage_queries: list[dict[str, Any]] = []
     for asset in assets:
         urn = str(asset.get("urn", ""))
         if not urn or urn in urns:
@@ -64,12 +66,26 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
             findings.append(Finding("high", "DEPRECATED_ASSET", f"{asset.get('name', urn)} is deprecated.", [urn]))
 
     dropped = [_clean(x) for x in _DROP_RE.findall(sql)]
+    for urn in urns:
+        for column in dropped or [None]:
+            usage_queries.extend(catalog.queries(urn, column))
     if dropped and downstream:
         findings.append(Finding(
             "critical",
             "BREAKING_LINEAGE",
             f"Dropping {', '.join(dropped)} can break {len(set(downstream))} downstream asset(s).",
             sorted(set(downstream)),
+        ))
+    if dropped and usage_queries:
+        query_ids = sorted({
+            str(query.get("urn") or query.get("name") or "DataHub query evidence")
+            for query in usage_queries
+        })
+        findings.append(Finding(
+            "high",
+            "ACTIVE_QUERY_USAGE",
+            f"DataHub records {len(query_ids)} active query pattern(s) using the dropped column(s).",
+            query_ids,
         ))
     if _SELECT_STAR_RE.search(sql):
         findings.append(Finding(
@@ -88,7 +104,7 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
 
     weights = {"critical": 55, "high": 30, "medium": 15, "low": 5}
     score = min(100, sum(weights[f.severity] for f in findings))
-    verdict = "BLOCK" if score >= 50 else "REVIEW" if score >= 20 else "PASS"
+    verdict = "BLOCK" if score >= 50 else "REVIEW" if findings else "PASS"
     safer_sql = sql
     if dropped and downstream:
         safer_sql = "-- ContractGuard: stage a compatibility view and notify downstream owners first.\n-- " + sql
@@ -101,6 +117,7 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
         f"- Verdict: **{verdict}**",
         f"- Risk score: **{score}/100**",
         f"- Resolved DataHub assets: {len(urns)}",
+        f"- DataHub usage queries inspected: {len(usage_queries)}",
         "",
         "## Findings",
     ]
@@ -117,4 +134,3 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
             urns,
         )
     return Review(verdict, score, urns, findings, safer_sql, markdown, writeback_id)
-

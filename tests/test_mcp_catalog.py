@@ -15,6 +15,8 @@ class FakeClient:
             return {"entities": [{"urn": "urn:customer", "deprecated": False}]}
         if name == "get_lineage":
             return {"searchResults": [{"entity": {"urn": "urn:dashboard"}}]}
+        if name == "get_dataset_queries":
+            return {"queries": [{"urn": "urn:query", "properties": {}}]}
         return {"urn": "urn:li:document:decision"}
 
 
@@ -27,12 +29,13 @@ class MCPCatalogTest(unittest.TestCase):
         lineage = catalog.lineage("urn:customer")[0]
         self.assertEqual("downstream", lineage["direction"])
         self.assertEqual("urn:dashboard", lineage["urn"])
+        self.assertEqual("urn:query", catalog.queries("urn:customer", "email")[0]["urn"])
         self.assertEqual(
             "urn:li:document:decision",
             catalog.save_decision("Decision", "Body", ["urn:customer"]),
         )
         self.assertEqual(
-            ["search", "get_entities", "get_lineage", "save_document"],
+            ["search", "get_entities", "get_lineage", "get_dataset_queries", "save_document"],
             [x[0] for x in client.calls],
         )
 

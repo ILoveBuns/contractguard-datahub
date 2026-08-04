@@ -1,5 +1,6 @@
 .env
 __pycache__/
 .pytest_cache/
-artifacts/
+artifacts/*
+!artifacts/*.json
 demo-output/
