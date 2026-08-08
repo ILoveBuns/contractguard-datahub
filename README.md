@@ -71,10 +71,15 @@ The script creates a sub-three-minute 1080p H.264/AAC video in
 
 ## Official DataHub MCP server
 
-Run the official server with mutation tools enabled:
+For read-only discovery and risk analysis, use the default client. It explicitly
+starts the official server with mutation tools disabled:
 
 ```bash
-TOOLS_IS_MUTATION_ENABLED=true mcp-server-datahub --transport stdio
+python - <<'PY'
+from contractguard.mcp_catalog import MCPClient
+with MCPClient() as client:
+    print(client.call("search", {"query": '/q "customers"', "num_results": 5}))
+PY
 ```
 
 Configure your standard DataHub CLI profile for the target DataHub Cloud or OSS
@@ -86,13 +91,14 @@ In Python, select the live adapter with:
 from contractguard.engine import review_sql
 from contractguard.mcp_catalog import DataHubMCPCatalog, MCPClient
 
-with MCPClient() as client:
+with MCPClient(enable_mutations=True) as client:
     review = review_sql(sql, DataHubMCPCatalog(client), write_back=True)
 ```
 
-The live flow invokes `search`, `get_entities`, `get_lineage`,
-`get_dataset_queries`, and `save_document`. Mutation support is required only
-for the final writeback; all discovery and risk analysis remains read-only.
+The live writeback flow invokes `search`, `get_entities`, `get_lineage`,
+`get_dataset_queries`, and `save_document`. Mutation support is explicitly
+enabled only for that final writeback; the default client and all discovery and
+risk analysis remain read-only.
 
 ## Hackathon track
 
