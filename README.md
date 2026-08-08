@@ -1,5 +1,7 @@
 # ContractGuard for DataHub
 
+[![tests](https://github.com/ILoveBuns/contractguard-datahub/actions/workflows/test.yml/badge.svg)](https://github.com/ILoveBuns/contractguard-datahub/actions/workflows/test.yml)
+
 ContractGuard is a metadata-aware SQL and dbt change reviewer for the
 [DataHub Hackathon 2026](https://datahub.devpost.com/). It resolves referenced
 assets in DataHub, inspects schema and downstream lineage, blocks breaking
@@ -51,7 +53,9 @@ python3 -m unittest discover -s tests -v
 
 The 10-test suite covers breaking lineage, active query usage, safe changes,
 unresolved assets, unstable projections, deduplication, writeback, fixture
-semantics, and the exact five-tool MCP flow.
+semantics, and the exact five-tool MCP flow. GitHub Actions repeats the suite
+on Python 3.11, 3.12, and 3.13 so the public submission evidence is independently
+reproducible.
 
 ## Rebuild the narrated demo video
 
