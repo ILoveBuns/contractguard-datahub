@@ -10,12 +10,17 @@ from typing import Any
 class MCPClient:
     """Small stdio JSON-RPC client for the official DataHub MCP server."""
 
-    def __init__(self, command: list[str] | None = None):
+    def __init__(
+        self,
+        command: list[str] | None = None,
+        *,
+        enable_mutations: bool = False,
+    ):
         command = command or os.environ.get(
             "DATAHUB_MCP_COMMAND", "mcp-server-datahub --transport stdio"
         ).split()
         env = os.environ.copy()
-        env.setdefault("TOOLS_IS_MUTATION_ENABLED", "true")
+        env["TOOLS_IS_MUTATION_ENABLED"] = "true" if enable_mutations else "false"
         self.process = subprocess.Popen(
             command,
             stdin=subprocess.PIPE,

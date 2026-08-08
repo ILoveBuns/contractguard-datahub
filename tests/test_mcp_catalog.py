@@ -1,6 +1,8 @@
+import os
 import unittest
+from unittest.mock import MagicMock, patch
 
-from contractguard.mcp_catalog import DataHubMCPCatalog
+from contractguard.mcp_catalog import DataHubMCPCatalog, MCPClient
 
 
 class FakeClient:
@@ -21,6 +23,29 @@ class FakeClient:
 
 
 class MCPCatalogTest(unittest.TestCase):
+    def client_process(self):
+        process = MagicMock()
+        process.stdin = MagicMock()
+        process.stdout = iter(
+            [
+                '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-03-26"}}\n'
+            ]
+        )
+        return process
+
+    @patch("contractguard.mcp_catalog.subprocess.Popen")
+    def test_mcp_client_disables_mutations_by_default(self, popen):
+        popen.return_value = self.client_process()
+        with patch.dict(os.environ, {"TOOLS_IS_MUTATION_ENABLED": "true"}):
+            MCPClient(["fake-server"])
+        self.assertEqual("false", popen.call_args.kwargs["env"]["TOOLS_IS_MUTATION_ENABLED"])
+
+    @patch("contractguard.mcp_catalog.subprocess.Popen")
+    def test_mcp_client_requires_explicit_mutation_opt_in(self, popen):
+        popen.return_value = self.client_process()
+        MCPClient(["fake-server"], enable_mutations=True)
+        self.assertEqual("true", popen.call_args.kwargs["env"]["TOOLS_IS_MUTATION_ENABLED"])
+
     def test_maps_official_tool_flow(self):
         client = FakeClient()
         catalog = DataHubMCPCatalog(client)
