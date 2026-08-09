@@ -38,8 +38,10 @@ to the organization's real data graph.
 
 - DataHub is in the critical path, not a decorative lookup.
 - Column-specific production query evidence strengthens the lineage blast radius.
+- Whole-table drops use asset-wide query evidence, including the
+  DROP TABLE IF EXISTS form without misidentifying IF as an asset.
 - The agent closes the loop by writing a durable decision back to DataHub.
-- Fifteen reproducible tests cover risk decisions, query evidence, adapter
+- Nineteen reproducible tests cover risk decisions, query evidence, adapter
   mapping, CLI safety gates, and writeback behavior.
 
 ## What's next
@@ -51,7 +53,7 @@ DataHub Cloud-backed public demo.
 
 - Public Apache-2.0 repository: <https://github.com/ILoveBuns/contractguard-datahub>
 - Reproducible test command: `python3 -m unittest discover -s tests -v`
-  (currently 15 passing tests)
+  (currently 19 passing tests)
 - Sample breaking change: `examples/breaking_change.sql`
 - Sample machine-readable decision: `artifacts/review.json`
 - Safe-change counterexample: `examples/safe_change.sql` and

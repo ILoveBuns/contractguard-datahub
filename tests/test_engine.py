@@ -90,6 +90,24 @@ class EngineTest(unittest.TestCase):
             all(line.startswith("-- ") for line in result.safer_sql.splitlines())
         )
 
+    def test_drop_table_uses_asset_wide_query_evidence(self):
+        result = review_sql(
+            "DROP TABLE IF EXISTS analytics.customers;",
+            self.catalog,
+        )
+        self.assertEqual("BLOCK", result.verdict)
+        self.assertEqual(
+            ["urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)"],
+            result.assets,
+        )
+        self.assertIn("Dropping table analytics.customers", result.findings[0].message)
+        self.assertIn("ACTIVE_QUERY_USAGE", [x.code for x in result.findings])
+        self.assertIn("DataHub usage queries inspected: 2", result.decision_markdown)
+        self.assertNotIn("Dropping TABLE", result.decision_markdown)
+        self.assertTrue(
+            all(line.startswith("-- ") for line in result.safer_sql.splitlines())
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
