@@ -26,6 +26,12 @@ production adapter and talks to the official server over MCP stdio JSON-RPC.
 
 ## Run the deterministic demo
 
+Requires Python 3.11 or newer. From a fresh clone:
+
+```bash
+python3 -m pip install -e .
+```
+
 ```bash
 python3 -m contractguard.cli examples/breaking_change.sql \
   --write-back --output artifacts/review.json
@@ -51,9 +57,9 @@ judge can inspect the evidence without installing anything.
 python3 -m unittest discover -s tests -v
 ```
 
-The 10-test suite covers breaking lineage, active query usage, safe changes,
+The 15-test suite covers breaking lineage, active query usage, safe changes,
 unresolved assets, unstable projections, deduplication, writeback, fixture
-semantics, and the exact five-tool MCP flow. GitHub Actions repeats the suite
+semantics, CLI safety gates, and the exact five-tool MCP flow. GitHub Actions repeats the suite
 on Python 3.11, 3.12, and 3.13 so the public submission evidence is independently
 reproducible.
 
@@ -71,28 +77,23 @@ The script creates a sub-three-minute 1080p H.264/AAC video in
 
 ## Official DataHub MCP server
 
-For read-only discovery and risk analysis, use the default client. It explicitly
-starts the official server with mutation tools disabled:
+For read-only discovery and risk analysis, use the live CLI mode. It explicitly
+starts the configured official server with mutation tools disabled:
 
 ```bash
-python - <<'PY'
-from contractguard.mcp_catalog import MCPClient
-with MCPClient() as client:
-    print(client.call("search", {"query": '/q "customers"', "num_results": 5}))
-PY
+contractguard examples/breaking_change.sql --live-datahub \
+  --output artifacts/live-review.json
 ```
 
 Configure your standard DataHub CLI profile for the target DataHub Cloud or OSS
 instance. ContractGuard never stores catalog tokens in the repository.
 
-In Python, select the live adapter with:
+To persist an approved decision, both writeback flags are intentionally
+required; this prevents an ordinary review from enabling mutation tools:
 
-```python
-from contractguard.engine import review_sql
-from contractguard.mcp_catalog import DataHubMCPCatalog, MCPClient
-
-with MCPClient(enable_mutations=True) as client:
-    review = review_sql(sql, DataHubMCPCatalog(client), write_back=True)
+```bash
+contractguard examples/breaking_change.sql --live-datahub \
+  --write-back --enable-mutations --output artifacts/live-review.json
 ```
 
 The live writeback flow invokes `search`, `get_entities`, `get_lineage`,

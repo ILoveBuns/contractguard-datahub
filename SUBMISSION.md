@@ -39,8 +39,8 @@ to the organization's real data graph.
 - DataHub is in the critical path, not a decorative lookup.
 - Column-specific production query evidence strengthens the lineage blast radius.
 - The agent closes the loop by writing a durable decision back to DataHub.
-- Ten reproducible tests cover risk decisions, query evidence, adapter mapping,
-  and writeback behavior.
+- Fifteen reproducible tests cover risk decisions, query evidence, adapter
+  mapping, CLI safety gates, and writeback behavior.
 
 ## What's next
 
@@ -51,7 +51,7 @@ DataHub Cloud-backed public demo.
 
 - Public Apache-2.0 repository: <https://github.com/ILoveBuns/contractguard-datahub>
 - Reproducible test command: `python3 -m unittest discover -s tests -v`
-  (currently 10 passing tests)
+  (currently 15 passing tests)
 - Sample breaking change: `examples/breaking_change.sql`
 - Sample machine-readable decision: `artifacts/review.json`
 - Safe-change counterexample: `examples/safe_change.sql` and
