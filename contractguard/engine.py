@@ -124,8 +124,6 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
     score = min(100, sum(weights[f.severity] for f in findings))
     verdict = "BLOCK" if score >= 50 else "REVIEW" if findings else "PASS"
     safer_sql = sql
-    if dropped and downstream:
-        safer_sql = "-- ContractGuard: stage a compatibility view and notify downstream owners first.\n-- " + sql
     if _SELECT_STAR_RE.search(executable_sql):
         # Only rewrite an executable SELECT *, never an example embedded in a
         # comment or string. The first executable match has the same offsets as
@@ -136,6 +134,15 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
             safer_sql[: match.start()]
             + "SELECT /* enumerate approved fields */"
             + safer_sql[match.end() :]
+        )
+    if dropped and downstream:
+        # Disable every source line after performing position-sensitive
+        # rewrites. Prefixing first would invalidate offsets; prefixing only the
+        # first line would leave later destructive statements executable.
+        disabled_sql = "\n".join(f"-- {line}" for line in safer_sql.splitlines())
+        safer_sql = (
+            "-- ContractGuard: stage a compatibility view and notify downstream owners first.\n"
+            + disabled_sql
         )
 
     lines = [

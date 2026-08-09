@@ -74,6 +74,22 @@ class EngineTest(unittest.TestCase):
             result.safer_sql,
         )
 
+    def test_breaking_multiline_migration_is_fully_disabled_after_rewrite(self):
+        result = review_sql(
+            "ALTER TABLE analytics.customers DROP COLUMN email;\n"
+            "SELECT * FROM analytics.customers;",
+            self.catalog,
+        )
+        self.assertEqual("BLOCK", result.verdict)
+        self.assertIn(
+            "-- SELECT /* enumerate approved fields */ FROM analytics.customers;",
+            result.safer_sql,
+        )
+        self.assertNotIn("and noSELECT", result.safer_sql)
+        self.assertTrue(
+            all(line.startswith("-- ") for line in result.safer_sql.splitlines())
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
