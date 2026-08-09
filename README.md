@@ -57,9 +57,10 @@ judge can inspect the evidence without installing anything.
 python3 -m unittest discover -s tests -v
 ```
 
-The 15-test suite covers breaking lineage, active query usage, safe changes,
-unresolved assets, unstable projections, deduplication, writeback, fixture
-semantics, CLI safety gates, and the exact five-tool MCP flow. GitHub Actions repeats the suite
+The 17-test suite covers breaking lineage, active query usage, safe changes,
+unresolved assets, unstable projections, SQL comment/string-literal isolation,
+deduplication, writeback, fixture semantics, CLI safety gates, and the exact
+five-tool MCP flow. GitHub Actions repeats the suite
 on Python 3.11, 3.12, and 3.13 so the public submission evidence is independently
 reproducible.
 

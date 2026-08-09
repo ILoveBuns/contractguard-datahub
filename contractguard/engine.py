@@ -38,14 +38,32 @@ class Review:
 _TABLE_RE = re.compile(r"\b(?:from|join|update|into|table)\s+([`\"\w.-]+)", re.I)
 _DROP_RE = re.compile(r"\bdrop\s+(?:column\s+)?([`\"\w.-]+)", re.I)
 _SELECT_STAR_RE = re.compile(r"\bselect\s+\*", re.I)
+_NON_CODE_RE = re.compile(
+    r"--[^\r\n]*|/\*.*?\*/|'(?:''|[^'])*'",
+    re.DOTALL,
+)
 
 
 def _clean(value: str) -> str:
     return value.strip("`\"")
 
 
+def _executable_sql(sql: str) -> str:
+    """Mask comments and string literals while preserving source positions.
+
+    ContractGuard is deliberately not a SQL executor, but risk keywords inside
+    prose and literal values must not become schema-change evidence. Replacing
+    each non-code span with equal-length whitespace keeps regex boundaries and
+    generated diagnostics deterministic without adding a dialect-specific
+    parser dependency.
+    """
+
+    return _NON_CODE_RE.sub(lambda match: " " * len(match.group(0)), sql)
+
+
 def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
-    names = list(dict.fromkeys(_clean(x) for x in _TABLE_RE.findall(sql)))
+    executable_sql = _executable_sql(sql)
+    names = list(dict.fromkeys(_clean(x) for x in _TABLE_RE.findall(executable_sql)))
     assets: list[dict[str, Any]] = []
     for name in names:
         assets.extend(catalog.search(name))
@@ -65,7 +83,7 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
         if detail.get("deprecated"):
             findings.append(Finding("high", "DEPRECATED_ASSET", f"{asset.get('name', urn)} is deprecated.", [urn]))
 
-    dropped = [_clean(x) for x in _DROP_RE.findall(sql)]
+    dropped = [_clean(x) for x in _DROP_RE.findall(executable_sql)]
     for urn in urns:
         for column in dropped or [None]:
             usage_queries.extend(catalog.queries(urn, column))
@@ -87,7 +105,7 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
             f"DataHub records {len(query_ids)} active query pattern(s) using the dropped column(s).",
             query_ids,
         ))
-    if _SELECT_STAR_RE.search(sql):
+    if _SELECT_STAR_RE.search(executable_sql):
         findings.append(Finding(
             "medium",
             "UNSTABLE_PROJECTION",
@@ -108,8 +126,17 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
     safer_sql = sql
     if dropped and downstream:
         safer_sql = "-- ContractGuard: stage a compatibility view and notify downstream owners first.\n-- " + sql
-    if _SELECT_STAR_RE.search(safer_sql):
-        safer_sql = _SELECT_STAR_RE.sub("SELECT /* enumerate approved fields */", safer_sql)
+    if _SELECT_STAR_RE.search(executable_sql):
+        # Only rewrite an executable SELECT *, never an example embedded in a
+        # comment or string. The first executable match has the same offsets as
+        # the original because `_executable_sql` preserves span lengths.
+        match = _SELECT_STAR_RE.search(executable_sql)
+        assert match is not None
+        safer_sql = (
+            safer_sql[: match.start()]
+            + "SELECT /* enumerate approved fields */"
+            + safer_sql[match.end() :]
+        )
 
     lines = [
         "# ContractGuard decision",
