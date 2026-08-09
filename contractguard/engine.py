@@ -35,9 +35,18 @@ class Review:
         return asdict(self)
 
 
-_TABLE_RE = re.compile(r"\b(?:from|join|update|into|table)\s+([`\"\w.-]+)", re.I)
-_DROP_RE = re.compile(r"\bdrop\s+(?:column\s+)?([`\"\w.-]+)", re.I)
 _SELECT_STAR_RE = re.compile(r"\bselect\s+\*", re.I)
+# Keep discovery lightweight while handling DROP TABLE IF EXISTS without
+# mistaking IF for the asset.
+_TABLE_RE = re.compile(
+    r"\b(?:from|join|update|into|table)\s+(?:if\s+exists\s+)?([^\s;,]+)",
+    re.I,
+)
+_DROP_COLUMN_RE = re.compile(r"\bdrop\s+column\s+([^\s;,]+)", re.I)
+_DROP_TABLE_RE = re.compile(
+    r"\bdrop\s+table\s+(?:if\s+exists\s+)?([^\s;,]+)",
+    re.I,
+)
 _NON_CODE_RE = re.compile(
     r"--[^\r\n]*|/\*.*?\*/|'(?:''|[^'])*'",
     re.DOTALL,
@@ -83,18 +92,29 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
         if detail.get("deprecated"):
             findings.append(Finding("high", "DEPRECATED_ASSET", f"{asset.get('name', urn)} is deprecated.", [urn]))
 
-    dropped = [_clean(x) for x in _DROP_RE.findall(executable_sql)]
+    dropped_columns = [_clean(x) for x in _DROP_COLUMN_RE.findall(executable_sql)]
+    dropped_tables = [_clean(x) for x in _DROP_TABLE_RE.findall(executable_sql)]
+    destructive_change = bool(dropped_columns or dropped_tables)
     for urn in urns:
-        for column in dropped or [None]:
+        # A dropped table invalidates every recorded query for the asset.
+        # Column drops can use DataHub's narrower column-aware query lookup.
+        query_columns: list[str | None] = (
+            [None] if dropped_tables else dropped_columns
+        )
+        for column in query_columns:
             usage_queries.extend(catalog.queries(urn, column))
-    if dropped and downstream:
+    if destructive_change and downstream:
+        targets = [
+            *(f"column {column}" for column in dropped_columns),
+            *(f"table {table}" for table in dropped_tables),
+        ]
         findings.append(Finding(
             "critical",
             "BREAKING_LINEAGE",
-            f"Dropping {', '.join(dropped)} can break {len(set(downstream))} downstream asset(s).",
+            f"Dropping {', '.join(targets)} can break {len(set(downstream))} downstream asset(s).",
             sorted(set(downstream)),
         ))
-    if dropped and usage_queries:
+    if destructive_change and usage_queries:
         query_ids = sorted({
             str(query.get("urn") or query.get("name") or "DataHub query evidence")
             for query in usage_queries
@@ -102,7 +122,7 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
         findings.append(Finding(
             "high",
             "ACTIVE_QUERY_USAGE",
-            f"DataHub records {len(query_ids)} active query pattern(s) using the dropped column(s).",
+            f"DataHub records {len(query_ids)} active query pattern(s) affected by the destructive change.",
             query_ids,
         ))
     if _SELECT_STAR_RE.search(executable_sql):
@@ -135,7 +155,7 @@ def review_sql(sql: str, catalog: Catalog, write_back: bool = False) -> Review:
             + "SELECT /* enumerate approved fields */"
             + safer_sql[match.end() :]
         )
-    if dropped and downstream:
+    if destructive_change and downstream:
         # Disable every source line after performing position-sensitive
         # rewrites. Prefixing first would invalidate offsets; prefixing only the
         # first line would leave later destructive statements executable.

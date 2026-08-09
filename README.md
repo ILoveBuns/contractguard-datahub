@@ -57,7 +57,8 @@ judge can inspect the evidence without installing anything.
 python3 -m unittest discover -s tests -v
 ```
 
-The 18-test suite covers breaking lineage, active query usage, safe changes,
+The 19-test suite covers breaking lineage, asset-wide query evidence for
+whole-table drops, active column query usage, safe changes,
 unresolved assets, unstable projections, SQL comment/string-literal isolation,
 deduplication, writeback, fixture semantics, CLI safety gates, and the exact
 five-tool MCP flow. GitHub Actions repeats the suite
