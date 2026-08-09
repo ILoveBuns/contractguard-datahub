@@ -46,6 +46,34 @@ class EngineTest(unittest.TestCase):
         )
         self.assertEqual(1, len(result.assets))
 
+    def test_ignores_risk_keywords_in_comments_and_string_literals(self):
+        result = review_sql(
+            """
+            -- ALTER TABLE analytics.customers DROP COLUMN email;
+            /* SELECT * FROM analytics.missing; */
+            SELECT customer_id, 'DROP COLUMN email FROM analytics.missing'
+            FROM analytics.customers;
+            """,
+            self.catalog,
+        )
+        self.assertEqual("PASS", result.verdict)
+        self.assertEqual(
+            ["urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.customers,PROD)"],
+            result.assets,
+        )
+        self.assertEqual([], result.findings)
+
+    def test_rewrites_only_executable_select_star(self):
+        result = review_sql(
+            "-- SELECT * FROM analytics.missing\nSELECT * FROM analytics.customers",
+            self.catalog,
+        )
+        self.assertTrue(result.safer_sql.startswith("-- SELECT * FROM analytics.missing"))
+        self.assertIn(
+            "SELECT /* enumerate approved fields */ FROM analytics.customers",
+            result.safer_sql,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
