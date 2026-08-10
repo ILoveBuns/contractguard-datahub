@@ -79,16 +79,31 @@ The script creates a sub-three-minute 1080p H.264/AAC video in
 
 ## Official DataHub MCP server
 
-For read-only discovery and risk analysis, use the live CLI mode. It explicitly
-starts the configured official server with mutation tools disabled:
+The deterministic fixture-backed demo above has no runtime dependencies. To run
+against a live DataHub Cloud or OSS instance, install `uv` if needed and launch
+the official DataHub MCP server through `uvx`:
+
+```bash
+# Install uv if it is not already available.
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Configure the DataHub connection without storing credentials in the repository.
+export DATAHUB_GMS_URL="<your-datahub-url>"
+export DATAHUB_GMS_TOKEN="<your-datahub-token>"
+export DATAHUB_MCP_COMMAND="uvx mcp-server-datahub@latest --transport stdio"
+```
+
+An existing standard DataHub CLI profile such as `~/.datahubenv` may provide the
+connection settings instead. Environment variables are shown as the explicit,
+portable setup. ContractGuard never stores catalog tokens in the repository.
+
+For read-only discovery and risk analysis, use the live CLI mode. It starts the
+configured official server with mutation tools disabled:
 
 ```bash
 contractguard examples/breaking_change.sql --live-datahub \
   --output artifacts/live-review.json
 ```
-
-Configure your standard DataHub CLI profile for the target DataHub Cloud or OSS
-instance. ContractGuard never stores catalog tokens in the repository.
 
 To persist an approved decision, both writeback flags are intentionally
 required; this prevents an ordinary review from enabling mutation tools:
